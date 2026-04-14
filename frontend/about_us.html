@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Us — Drovery</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    body { background: var(--bg); }
+    .about-content {
+      max-width: 1100px;
+      margin: 4rem auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+    .about-text h2 { font-size: 1.8rem; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 1rem; }
+    .about-text p  { color: var(--muted); line-height: 1.8; margin-bottom: 1rem; }
+    .about-img img { width: 100%; border-radius: 20px; box-shadow: var(--shadow-lg); }
+
+    .mission-section {
+      background: var(--navy);
+      padding: 5rem 2rem;
+    }
+    .mission-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+    .mission-text h3 { font-size: 1.5rem; font-weight: 900; color: #fff; margin-bottom: 0.75rem; }
+    .mission-text p  { color: rgba(255,255,255,0.6); line-height: 1.8; margin-bottom: 1.5rem; }
+    .mission-text h3 span { color: var(--blue); }
+    .mission-img img { width: 100%; border-radius: 20px; }
+
+    .values-section { max-width: 1100px; margin: 4rem auto; padding: 0 2rem; }
+    .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-top: 2rem; }
+    .value-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; }
+    .value-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .value-card h4 { font-size: 1rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .value-card p  { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+
+    @media (max-width: 768px) {
+      .about-content, .mission-inner { grid-template-columns: 1fr; }
+      .values-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="logo">Drovery</a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about_us.html" class="active">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li id="nav-auth"><a href="login.html" class="nav-cta">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-hero">
+    <h1>About Drovery</h1>
+    <p>Delivering smiles — one flight at a time.</p>
+  </div>
+
+  <div class="about-content">
+    <div class="about-text">
+      <div class="section-label">Who We Are</div>
+      <h2>We're rethinking the last mile</h2>
+      <p>Drovery is a drone delivery company built to solve the "last mile" problem. We combine autonomous flight technology with a seamless user experience to make deliveries faster, greener, and more reliable than ever.</p>
+      <p>With a growing fleet of drones and partners across multiple cities, we serve thousands of satisfied customers every day — bringing convenience and peace of mind straight to their doors.</p>
+      <a href="order.html" class="btn btn-primary">🚁 Try it now</a>
+    </div>
+    <div class="about-img">
+      <img src="DroneThumbnail.jpg" alt="About Drovery"
+        onerror="this.src='https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700'"/>
+    </div>
+  </div>
+
+  <section class="mission-section">
+    <div class="mission-inner">
+      <div class="mission-text">
+        <h3><span>Our Mission</span></h3>
+        <p>To simplify delivery for everyone — individuals and businesses alike. We empower local vendors, support sustainable practices, and provide a logistics platform customers can always rely on.</p>
+        <h3><span>Our Vision</span></h3>
+        <p>To become the most trusted delivery partner across the country, recognized for innovation, integrity, and outstanding customer satisfaction.</p>
+        <a href="services.html" class="btn btn-outline">Explore Services →</a>
+      </div>
+      <div class="mission-img">
+        <img src="https://images.unsplash.com/photo-1593642632559-0c6d3fc62b8f?w=600" alt="Mission" style="border-radius:20px"/>
+      </div>
+    </div>
+  </section>
+
+  <section class="values-section">
+    <div class="section-label">Our Values</div>
+    <h2 class="section-title">What drives us</h2>
+    <div class="values-grid">
+      <div class="value-card">
+        <div class="value-icon">⚡</div>
+        <h4>Speed</h4>
+        <p>We relentlessly optimize for delivery time without compromising safety or quality.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">🔒</div>
+        <h4>Trust</h4>
+        <p>Every package is handled with care. Transparent tracking builds confidence.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">🌱</div>
+        <h4>Sustainability</h4>
+        <p>Electric drones mean zero road emissions. We're delivering a greener future.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">© 2026 Drovery. All rights reserved.</footer>
+  <script src="api.js"></script>
+</body>
+</html>

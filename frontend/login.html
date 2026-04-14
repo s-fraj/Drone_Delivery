@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — Drovery</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, var(--navy) 0%, #0a1e45 100%);
+    }
+    .auth-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6rem 1.5rem 3rem;
+    }
+    .auth-box {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 440px;
+      padding: 2.5rem 2.2rem 2rem;
+    }
+    .auth-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--blue);
+      text-align: center;
+      margin-bottom: 0.25rem;
+      letter-spacing: 0.04em;
+    }
+    .auth-tagline {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 2rem;
+    }
+    .auth-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+    }
+    .auth-footer {
+      text-align: center;
+      margin-top: 1.2rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .auth-footer a {
+      color: var(--blue);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .error-msg {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .btn-primary { width: 100%; justify-content: center; padding: 0.82rem; font-size: 1rem; }
+    .divider { display: flex; align-items: center; gap: 1rem; margin: 1.2rem 0; }
+    .divider span { flex: 1; height: 1px; background: var(--border); }
+    .divider p { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">Drovery</a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about_us.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li id="nav-auth"><a href="signup.html" class="nav-cta">Sign Up</a></li>
+    </ul>
+  </nav>
+
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-logo">Drovery</div>
+      <p class="auth-tagline">Drone-powered delivery at your fingertips</p>
+
+      <h2 class="auth-title">Welcome back</h2>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="email" placeholder="you@example.com" required/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="••••••••" required/>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          Sign In
+        </button>
+      </form>
+
+      <div class="divider"><span></span><p>Don't have an account?</p><span></span></div>
+
+      <div class="auth-footer">
+        <a href="signup.html">Create a free account →</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">© 2026 Drovery. All rights reserved.</footer>
+
+  <script src="api.js"></script>
+  <script>
+    if (isLoggedIn()) window.location.href = 'profile.html';
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const err = document.getElementById('errorMsg');
+      err.style.display = 'none';
+      btn.textContent = 'Signing in…';
+      btn.disabled = true;
+
+      try {
+        // OAuth2 form requires URLEncoded
+        const res = await fetch('http://localhost:8000/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            username: document.getElementById('email').value,
+            password: document.getElementById('password').value
+          })
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.detail || 'Login failed');
+        }
+        const data = await res.json();
+        setToken(data.access_token);
+        window.location.href = 'profile.html';
+      } catch (ex) {
+        err.textContent = ex.message;
+        err.style.display = 'block';
+        btn.textContent = 'Sign In';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

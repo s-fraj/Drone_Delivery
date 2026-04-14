@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Order — Drovery</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    body { padding-top: 66px; }
+    .order-layout {
+      max-width: 860px;
+      margin: 3rem auto;
+      padding: 0 1.5rem 4rem;
+    }
+    .order-layout h1 {
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.4rem;
+    }
+    .order-layout .subtitle { color: var(--muted); margin-bottom: 2rem; }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.2rem;
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .step-header h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .card { margin-bottom: 1.5rem; }
+
+    /* Price preview */
+    .price-preview {
+      background: var(--navy);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .price-preview .label { color: rgba(255,255,255,0.55); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .price-preview .amount { font-size: 2.4rem; font-weight: 900; color: #fff; font-family: 'Space Mono', monospace; }
+    .price-breakdown { display: flex; gap: 2rem; margin-top: 0.8rem; flex-wrap: wrap; }
+    .price-breakdown span { font-size: 0.82rem; color: rgba(255,255,255,0.5); }
+    .price-breakdown b { color: rgba(255,255,255,0.85); }
+
+    /* Card input styling */
+    .card-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem; }
+    .card-icon { position: absolute; right: 0.9rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+    .card-field { position: relative; }
+    .card-field input { padding-right: 2.5rem; width: 100%; }
+
+    /* Submit area */
+    .submit-area { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .btn-primary.submit-btn { min-width: 200px; justify-content: center; padding: 0.9rem 2rem; font-size: 1rem; }
+
+    .error-msg { background: #fee2e2; color: #991b1b; padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1rem; display: none; }
+    .success-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    .success-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 3rem 2.5rem;
+      text-align: center;
+      max-width: 420px;
+      width: 90%;
+    }
+    .success-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .success-box h2 { font-size: 1.6rem; font-weight: 900; margin-bottom: 0.5rem; }
+    .success-box p { color: var(--muted); margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="logo">Drovery</a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about_us.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li id="nav-auth"><a href="login.html" class="nav-cta">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="order-layout">
+    <h1>🚁 Schedule a Delivery</h1>
+    <p class="subtitle">Fill in the details below — your drone will be dispatched immediately after payment.</p>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <!-- STEP 1: LOCATIONS -->
+    <div class="card">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <h3>Pickup & Drop-off</h3>
+      </div>
+      <div class="form-group">
+        <label>Pickup Address</label>
+        <input type="text" id="pickupAddress" placeholder="Enter full pickup address" required/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Pickup Latitude (optional)</label>
+          <input type="number" id="pickupLat" placeholder="36.8000" step="0.0001"/>
+        </div>
+        <div class="form-group">
+          <label>Pickup Longitude (optional)</label>
+          <input type="number" id="pickupLng" placeholder="10.1800" step="0.0001"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Drop-off Address</label>
+        <input type="text" id="dropoffAddress" placeholder="Enter full drop-off address" required/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Drop-off Latitude (optional)</label>
+          <input type="number" id="dropoffLat" placeholder="36.8500" step="0.0001"/>
+        </div>
+        <div class="form-group">
+          <label>Drop-off Longitude (optional)</label>
+          <input type="number" id="dropoffLng" placeholder="10.2200" step="0.0001"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: PACKAGE -->
+    <div class="card">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <h3>Package Details</h3>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Weight (kg) *</label>
+          <input type="number" id="weight" min="0.1" max="25" step="0.1" placeholder="e.g. 2.5" required oninput="updatePrice()"/>
+        </div>
+        <div class="form-group">
+          <label>Package Description</label>
+          <input type="text" id="packageDesc" placeholder="e.g. Documents, electronics…"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Recipient Name</label>
+          <input type="text" id="recipientName" placeholder="Full name"/>
+        </div>
+        <div class="form-group">
+          <label>Recipient Phone</label>
+          <input type="tel" id="recipientPhone" placeholder="+216 XX XXX XXX"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Special Notes</label>
+        <input type="text" id="notes" placeholder="Handle with care, leave at door, etc."/>
+      </div>
+    </div>
+
+    <!-- PRICE PREVIEW -->
+    <div class="price-preview">
+      <div class="label">Estimated Total</div>
+      <div class="amount" id="priceDisplay">$5.00</div>
+      <div class="price-breakdown">
+        <span>Base fee: <b>$5.00</b></span>
+        <span id="weightCost">Weight: <b>$0.00</b></span>
+        <span id="distanceCost">Distance: <b>—</b></span>
+      </div>
+    </div>
+
+    <!-- STEP 3: PAYMENT -->
+    <div class="card">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <h3>Card Payment</h3>
+      </div>
+      <div class="form-group">
+        <label>Cardholder Name</label>
+        <input type="text" id="cardHolder" placeholder="Name on card" required/>
+      </div>
+      <div class="form-group card-field">
+        <label>Card Number</label>
+        <input type="text" id="cardNumber" maxlength="19" placeholder="1234 5678 9012 3456" required oninput="formatCard(this)"/>
+        <span class="card-icon" id="cardBrandIcon">💳</span>
+      </div>
+      <div class="card-row">
+        <div class="form-group">
+          <label>Expiry Date</label>
+          <input type="text" id="cardExpiry" maxlength="5" placeholder="MM/YY" required oninput="formatExpiry(this)"/>
+        </div>
+        <div class="form-group">
+          <label>CVC</label>
+          <input type="text" id="cardCvc" maxlength="4" placeholder="•••" required/>
+        </div>
+        <div></div>
+      </div>
+    </div>
+
+    <div class="submit-area">
+      <p class="text-muted" style="font-size:0.82rem">🔒 Secured with 256-bit TLS encryption</p>
+      <button class="btn btn-primary submit-btn" id="submitBtn" onclick="placeOrder()">
+        Place Order & Pay
+      </button>
+    </div>
+  </div>
+
+  <!-- SUCCESS OVERLAY -->
+  <div class="success-overlay" id="successOverlay" style="display:flex; display:none;">
+    <div class="success-box">
+      <div class="success-icon">🚁</div>
+      <h2>Order Placed!</h2>
+      <p>Your drone is being dispatched. You can track it live from your profile.</p>
+      <div style="display:flex; gap:1rem; justify-content:center;">
+        <a href="profile.html" class="btn btn-primary">Track My Order</a>
+        <a href="index.html" class="btn btn-ghost">Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">© 2026 Drovery. All rights reserved.</footer>
+
+  <script src="api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!isLoggedIn()) window.location.href = 'login.html';
+    });
+
+    function updatePrice() {
+      const w = parseFloat(document.getElementById('weight').value) || 0;
+      const weightCost = w * 2.5;
+      const total = 5 + weightCost;
+      document.getElementById('priceDisplay').textContent = '$' + total.toFixed(2);
+      document.getElementById('weightCost').innerHTML = `Weight: <b>$${weightCost.toFixed(2)}</b>`;
+    }
+
+    function formatCard(input) {
+      let v = input.value.replace(/\D/g, '').substring(0, 16);
+      input.value = v.replace(/(.{4})/g, '$1 ').trim();
+      const icon = document.getElementById('cardBrandIcon');
+      icon.textContent = v.startsWith('4') ? '💙' : v.startsWith('5') ? '🟠' : v.startsWith('3') ? '🟢' : '💳';
+    }
+
+    function formatExpiry(input) {
+      let v = input.value.replace(/\D/g, '');
+      if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2, 4);
+      input.value = v;
+    }
+
+    async function placeOrder() {
+      const btn = document.getElementById('submitBtn');
+      const err = document.getElementById('errorMsg');
+      err.style.display = 'none';
+
+      const pickup  = document.getElementById('pickupAddress').value.trim();
+      const dropoff = document.getElementById('dropoffAddress').value.trim();
+      const weight  = parseFloat(document.getElementById('weight').value);
+
+      if (!pickup || !dropoff || !weight) {
+        err.textContent = 'Please fill in all required fields.';
+        err.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = 'Placing order…';
+      btn.disabled = true;
+
+      try {
+        // 1. Create order
+        const order = await apiFetch('/orders', {
+          method: 'POST',
+          body: JSON.stringify({
+            pickup_address:  pickup,
+            dropoff_address: dropoff,
+            pickup_lat:  parseFloat(document.getElementById('pickupLat').value) || null,
+            pickup_lng:  parseFloat(document.getElementById('pickupLng').value) || null,
+            dropoff_lat: parseFloat(document.getElementById('dropoffLat').value) || null,
+            dropoff_lng: parseFloat(document.getElementById('dropoffLng').value) || null,
+            package_weight:  weight,
+            package_desc:    document.getElementById('packageDesc').value || null,
+            recipient_name:  document.getElementById('recipientName').value || null,
+            recipient_phone: document.getElementById('recipientPhone').value || null,
+            notes:           document.getElementById('notes').value || null
+          })
+        });
+
+        // 2. Process payment
+        await apiFetch(`/orders/${order.id}/pay`, {
+          method: 'POST',
+          body: JSON.stringify({
+            card_number: document.getElementById('cardNumber').value.replace(/\s/g,''),
+            card_expiry: document.getElementById('cardExpiry').value,
+            card_cvc:    document.getElementById('cardCvc').value,
+            card_holder: document.getElementById('cardHolder').value
+          })
+        });
+
+        document.getElementById('successOverlay').style.display = 'flex';
+      } catch (ex) {
+        err.textContent = ex.message;
+        err.style.display = 'block';
+        btn.textContent = 'Place Order & Pay';
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

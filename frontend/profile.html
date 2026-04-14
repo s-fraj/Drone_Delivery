@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Profile — Drovery</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    body { padding-top: 66px; background: var(--bg); }
+    .profile-layout {
+      max-width: 1000px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem 4rem;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    /* Sidebar */
+    .sidebar { display: flex; flex-direction: column; gap: 1.2rem; }
+    .user-card {
+      background: var(--navy);
+      border-radius: var(--radius);
+      padding: 2rem 1.5rem;
+      color: #fff;
+      text-align: center;
+    }
+    .avatar {
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      background: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 0 auto 1rem;
+      border: 3px solid rgba(255,255,255,0.2);
+    }
+    .user-name { font-size: 1.1rem; font-weight: 800; }
+    .user-email { color: rgba(255,255,255,0.5); font-size: 0.82rem; margin-top: 0.25rem; }
+    .user-meta { margin-top: 1rem; display: flex; justify-content: center; gap: 1.5rem; }
+    .user-meta div { text-align: center; }
+    .user-meta .num { font-size: 1.4rem; font-weight: 800; color: var(--blue); font-family: 'Space Mono', monospace; }
+    .user-meta .lbl { font-size: 0.72rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.06em; }
+    .sidebar .btn { width: 100%; justify-content: center; }
+
+    /* Main content */
+    .main-content { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    /* Section headers */
+    .section-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .section-hdr h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.01em; }
+
+    /* Order cards */
+    .order-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 0.75rem;
+      transition: box-shadow 0.2s;
+    }
+    .order-card:hover { box-shadow: var(--shadow); }
+    .order-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+    .order-id { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+    .order-route { font-size: 0.9rem; margin-top: 0.4rem; }
+    .order-route .addr { color: var(--muted); font-size: 0.82rem; }
+    .order-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+    .order-price { font-weight: 800; font-family: 'Space Mono', monospace; color: var(--blue); }
+    .order-date { font-size: 0.78rem; color: var(--muted); }
+
+    /* Tracking modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65);
+      align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-hdr h3 { font-size: 1.15rem; font-weight: 800; }
+    .close-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); }
+    .track-stat { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem; }
+    .track-item { background: var(--bg); border-radius: 10px; padding: 1rem; }
+    .track-item .tl { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .track-item .tv { font-size: 1.1rem; font-weight: 800; margin-top: 0.2rem; font-family: 'Space Mono', monospace; }
+    .progress-bar { background: var(--border); border-radius: 100px; height: 8px; overflow: hidden; margin: 0.4rem 0 1rem; }
+    .progress-fill { background: var(--blue); height: 100%; border-radius: 100px; transition: width 0.5s; }
+
+    /* Saved locations */
+    .loc-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid var(--border); }
+    .loc-item:last-child { border-bottom: none; }
+    .loc-icon { font-size: 1.2rem; margin-right: 0.6rem; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+    .empty .ei { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+    @media (max-width: 768px) {
+      .profile-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="logo">Drovery</a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="order.html">New Order</a></li>
+      <li id="nav-auth"><a href="login.html" class="nav-cta">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="profile-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="user-card">
+        <div class="avatar" id="userAvatar">?</div>
+        <div class="user-name" id="userName">Loading…</div>
+        <div class="user-email" id="userEmail"></div>
+        <div class="user-meta">
+          <div>
+            <div class="num" id="orderCount">—</div>
+            <div class="lbl">Orders</div>
+          </div>
+          <div>
+            <div class="num" id="totalSpent">—</div>
+            <div class="lbl">Spent</div>
+          </div>
+        </div>
+      </div>
+      <a href="order.html" class="btn btn-primary">🚁 New Order</a>
+      <button class="btn btn-ghost" onclick="logout()">Sign Out</button>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- ACTIVE ORDERS -->
+      <div class="card">
+        <div class="section-hdr">
+          <h2>🟢 Active Orders</h2>
+          <a href="order.html" class="btn btn-outline btn-sm">+ New</a>
+        </div>
+        <div id="activeOrders"><div class="empty"><div class="ei">📭</div><p>No active orders</p></div></div>
+      </div>
+
+      <!-- ORDER HISTORY -->
+      <div class="card">
+        <div class="section-hdr">
+          <h2>📦 Order History</h2>
+        </div>
+        <div id="orderHistory"><div class="empty"><div class="ei">📋</div><p>No past orders yet</p></div></div>
+      </div>
+
+      <!-- SAVED LOCATIONS -->
+      <div class="card">
+        <div class="section-hdr">
+          <h2>📍 Saved Locations</h2>
+          <button class="btn btn-outline btn-sm" onclick="showAddLocation()">+ Add</button>
+        </div>
+        <div id="locationsList"><div class="empty"><p>No saved locations</p></div></div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- TRACKING MODAL -->
+  <div class="modal-overlay" id="trackModal">
+    <div class="modal">
+      <div class="modal-hdr">
+        <h3>🚁 Live Tracking — <span id="trackOrderId"></span></h3>
+        <button class="close-btn" onclick="closeTrack()">✕</button>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="trackProgress" style="width:0%"></div></div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem" id="trackStatus">Status: —</p>
+      <div class="track-stat">
+        <div class="track-item"><div class="tl">🔋 Battery</div><div class="tv" id="tBattery">—%</div></div>
+        <div class="track-item"><div class="tl">⬆ Altitude</div><div class="tv" id="tAlt">— m</div></div>
+        <div class="track-item"><div class="tl">💨 Speed</div><div class="tv" id="tSpeed">— km/h</div></div>
+        <div class="track-item"><div class="tl">🤖 Drone ID</div><div class="tv" id="tDroneId">—</div></div>
+      </div>
+      <div class="track-item" style="background:var(--bg);border-radius:10px;padding:1rem">
+        <div class="tl">📍 Current Position</div>
+        <div class="tv" id="tPosition" style="font-size:0.85rem">—</div>
+      </div>
+      <button class="btn btn-ghost mt-3" style="width:100%;justify-content:center" onclick="refreshTrack()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- ADD LOCATION MODAL -->
+  <div class="modal-overlay" id="locModal">
+    <div class="modal">
+      <div class="modal-hdr">
+        <h3>Add Saved Location</h3>
+        <button class="close-btn" onclick="document.getElementById('locModal').classList.remove('open')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Label (e.g. Home, Office)</label>
+        <input type="text" id="locLabel" placeholder="Home"/>
+      </div>
+      <div class="form-group">
+        <label>Full Address</label>
+        <input type="text" id="locAddress" placeholder="45 King Street, Medenine"/>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveLocation()">Save Location</button>
+    </div>
+  </div>
+
+  <footer class="footer">© 2026 Drovery. All rights reserved.</footer>
+
+  <script src="api.js"></script>
+  <script>
+    let trackInterval = null;
+    let currentTrackOrderId = null;
+
+    const STATUS_PROGRESS = {
+      pending: 5, confirmed: 20, dispatched: 40,
+      in_transit: 70, delivered: 100, cancelled: 0
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!isLoggedIn()) { window.location.href = 'login.html'; return; }
+      await loadProfile();
+      await loadOrders();
+      await loadLocations();
+    });
+
+    async function loadProfile() {
+      const user = await apiFetch('/users/me');
+      document.getElementById('userAvatar').textContent = user.first_name[0].toUpperCase();
+      document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
+      document.getElementById('userEmail').textContent = user.email;
+    }
+
+    async function loadOrders() {
+      const orders = await apiFetch('/orders');
+      const active = orders.filter(o => !['delivered','cancelled'].includes(o.status));
+      const history = orders.filter(o => ['delivered','cancelled'].includes(o.status));
+
+      document.getElementById('orderCount').textContent = orders.length;
+      const total = orders.reduce((s, o) => s + o.price, 0);
+      document.getElementById('totalSpent').textContent = '$' + total.toFixed(0);
+
+      renderOrders('activeOrders', active, true);
+      renderOrders('orderHistory', history, false);
+    }
+
+    function renderOrders(containerId, orders, showTrack) {
+      const el = document.getElementById(containerId);
+      if (!orders.length) {
+        el.innerHTML = `<div class="empty"><div class="ei">${showTrack ? '📭' : '📋'}</div><p>No orders here yet</p></div>`;
+        return;
+      }
+      el.innerHTML = orders.map(o => `
+        <div class="order-card">
+          <div class="order-top">
+            <div>
+              <div class="order-id">Order #${o.id}</div>
+              <div class="order-route">
+                📦 <b>${o.pickup_address}</b><br>
+                <span class="addr">→ ${o.dropoff_address}</span>
+              </div>
+            </div>
+            <span class="badge badge-${o.status}">${o.status.replace('_',' ')}</span>
+          </div>
+          <div class="order-footer">
+            <div>
+              <div class="order-price">$${o.price.toFixed(2)}</div>
+              <div class="order-date">${new Date(o.created_at).toLocaleDateString()}</div>
+            </div>
+            ${showTrack ? `<button class="btn btn-outline btn-sm" onclick="openTrack(${o.id})">🚁 Track</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function openTrack(orderId) {
+      currentTrackOrderId = orderId;
+      document.getElementById('trackOrderId').textContent = `#${orderId}`;
+      document.getElementById('trackModal').classList.add('open');
+      await refreshTrack();
+      trackInterval = setInterval(refreshTrack, 5000);
+    }
+
+    async function refreshTrack() {
+      if (!currentTrackOrderId) return;
+      try {
+        const [order, tracking] = await Promise.all([
+          apiFetch(`/orders/${currentTrackOrderId}`),
+          apiFetch(`/orders/${currentTrackOrderId}/track`)
+        ]);
+        const pct = STATUS_PROGRESS[order.status] || 0;
+        document.getElementById('trackProgress').style.width = pct + '%';
+        document.getElementById('trackStatus').textContent = `Status: ${order.status.replace('_',' ').toUpperCase()} (${pct}%)`;
+        document.getElementById('tBattery').textContent = (tracking.battery_pct ?? '—') + '%';
+        document.getElementById('tAlt').textContent = (tracking.altitude_m ?? '—') + ' m';
+        document.getElementById('tSpeed').textContent = (tracking.speed_kmh ?? '—') + ' km/h';
+        document.getElementById('tDroneId').textContent = tracking.drone_id || '—';
+        if (tracking.current_lat && tracking.current_lng) {
+          document.getElementById('tPosition').textContent = `${tracking.current_lat.toFixed(5)}, ${tracking.current_lng.toFixed(5)}`;
+        }
+      } catch (e) { /* silently ignore */ }
+    }
+
+    function closeTrack() {
+      clearInterval(trackInterval);
+      currentTrackOrderId = null;
+      document.getElementById('trackModal').classList.remove('open');
+    }
+
+    async function loadLocations() {
+      const locs = await apiFetch('/locations');
+      const el = document.getElementById('locationsList');
+      if (!locs.length) {
+        el.innerHTML = '<div class="empty"><p>No saved locations yet</p></div>';
+        return;
+      }
+      const icons = { Home: '🏠', Office: '🏢', default: '📍' };
+      el.innerHTML = locs.map(l => `
+        <div class="loc-item">
+          <div>
+            <span class="loc-icon">${icons[l.label] || icons.default}</span>
+            <b>${l.label}</b> — <span style="color:var(--muted);font-size:0.88rem">${l.address}</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="deleteLocation(${l.id})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function showAddLocation() {
+      document.getElementById('locModal').classList.add('open');
+    }
+
+    async function saveLocation() {
+      const label = document.getElementById('locLabel').value.trim();
+      const address = document.getElementById('locAddress').value.trim();
+      if (!label || !address) return alert('Please fill both fields.');
+      await apiFetch('/locations', { method: 'POST', body: JSON.stringify({ label, address }) });
+      document.getElementById('locModal').classList.remove('open');
+      await loadLocations();
+    }
+
+    async function deleteLocation(id) {
+      await apiFetch(`/locations/${id}`, { method: 'DELETE' });
+      await loadLocations();
+    }
+
+    function logout() {
+      clearToken();
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>
