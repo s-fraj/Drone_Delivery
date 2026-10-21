@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Profile — Drovery</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    body { padding-top: 66px; background: var(--bg); }
+    .profile-layout {
+      max-width: 1000px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem 4rem;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    /* Sidebar */
+    .sidebar { display: flex; flex-direction: column; gap: 1.2rem; }
+    .user-card {
+      background: var(--navy);
+      border-radius: var(--radius);
+      padding: 2rem 1.5rem;
+      color: #fff;
+      text-align: center;
+    }
+    .avatar {
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      background: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 0 auto 1rem;
+      border: 3px solid rgba(255,255,255,0.2);
+    }
+    .user-name { font-size: 1.1rem; font-weight: 800; }
+    .user-email { color: rgba(255,255,255,0.5); font-size: 0.82rem; margin-top: 0.25rem; }
+    .user-meta { margin-top: 1rem; display: flex; justify-content: center; gap: 1.5rem; }
+    .user-meta div { text-align: center; }
+    .user-meta .num { font-size: 1.4rem; font-weight: 800; color: var(--blue); font-family: 'Space Mono', monospace; }
+    .user-meta .lbl { font-size: 0.72rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.06em; }
+    .sidebar .btn { width: 100%; justify-content: center; }
+
+    /* Main content */
+    .main-content { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    /* Section headers */
+    .section-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .section-hdr h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.01em; }
+
+    /* Order cards */
+    .order-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 0.75rem;
+      transition: box-shadow 0.2s;
+    }
+    .order-card:hover { box-shadow: var(--shadow); }
+    .order-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+    .order-id { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+    .order-route { font-size: 0.9rem; margin-top: 0.4rem; }
+    .order-route .addr { color: var(--muted); font-size: 0.82rem; }
+    .order-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+    .order-price { font-weight: 800; font-family: 'Space Mono', monospace; color: var(--blue); }
+    .order-date { font-size: 0.78rem; color: var(--muted); }
+
+    /* Tracking modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65);
+      align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-hdr h3 { font-size: 1.15rem; font-weight: 800; }
+    .close-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); }
+    .track-stat { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem; }
+    .track-item { background: var(--bg); border-radius: 10px; padding: 1rem; }
+    .track-item .tl { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .track-item .tv { font-size: 1.1rem; font-weight: 800; margin-top: 0.2rem; font-family: 'Space Mono', monospace; }
+    .progress-bar { background: var(--border); border-radius: 100px; height: 8px; overflow: hidden; margin: 0.4rem 0 1rem; }
+    .progress-fill { background: var(--blue); height: 100%; border-radius: 100px; transition: width 0.5s; }
+
+    /* Saved locations */
+    .loc-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid var(--border); }
+    .loc-item:last-child { border-bottom: none; }
+    .loc-icon { font-size: 1.2rem; margin-right: 0.6rem; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+    .empty .ei { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+    @media (max-width: 768px) {
+      .profile-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="logo">Drovery</a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="order.html">New Order</a></li>
+      <li id="nav-auth"><a href="login.html" class="nav-cta">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="profile-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="user-card">
+        <div class="avatar" id="userAvatar">?</div>
+        <div class="user-name" id="userName">Loading…</div>
+        <div class="user-email" id="userEmail"></div>
+        <div class="user-meta">
+          <div>
+            <div class="num" id="orderCount">—</div>
+            <div class="lbl">Orders</div>
+          </div>
+          <div>
+            <div class="num" id="totalSpent">—</div>
+            <div class="lbl">Spent</div>
+          </div>
+        </div>
+      </div>
+      <a href="order.html" class="btn btn-primary">🚁 New Order</a>
+      <button class="btn btn-ghost" onclick="logout()">Sign Out</button>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- ACTIVE ORDERS -->
+      <div class="card">
+        <div class="section-hdr">
+          <h2>🟢 Active Orders</h2>
+          <div style="display:flex;gap:0.5rem">
+            <button id="enableAlertsBtn" class="btn btn-outline btn-sm" onclick="enableAlerts()">🔔 Enable delivery alerts</button>
+            <a href="order.html" class="btn btn-outline btn-sm">+ New</a>
+          </div>
+        </div>
+        <div id="activeOrders"><div class="empty"><div class="ei">📭</div><p>No active orders</p></div></div>
+      </div>
+
+      <!-- ORDER HISTORY -->
+      <div class="card">
+        <div class="section-hdr">
+          <h2>📦 Order History</h2>
+        </div>
+        <div id="orderHistory"><div class="empty"><div class="ei">📋</div><p>No past orders yet</p></div></div>
+      </div>
+
+      <!-- SAVED LOCATIONS -->
+      <div class="card">
+        <div class="section-hdr">
+          <h2>📍 Saved Locations</h2>
+          <button class="btn btn-outline btn-sm" onclick="showAddLocation()">+ Add</button>
+        </div>
+        <div id="locationsList"><div class="empty"><p>No saved locations</p></div></div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- TRACKING MODAL -->
+  <div class="modal-overlay" id="trackModal">
+    <div class="modal">
+      <div class="modal-hdr">
+        <h3>🚁 Live Tracking — <span id="trackOrderId"></span></h3>
+        <button class="close-btn" onclick="closeTrack()">✕</button>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="trackProgress" style="width:0%"></div></div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem" id="trackStatus">Status: —</p>
+      <div id="trackErrorBanner" style="display:none;background:#fee2e2;color:#991b1b;padding:0.7rem 1rem;border-radius:8px;font-size:0.85rem;margin-bottom:1rem"></div>
+      <div class="track-stat">
+        <div class="track-item"><div class="tl">🚁 Mission Status</div><div class="tv" id="tMissionStatus" style="font-size:0.95rem">—</div></div>
+        <div class="track-item"><div class="tl">🤖 Assigned Drone</div><div class="tv" id="tDroneId">—</div></div>
+      </div>
+      <div class="track-item" id="tQueueRow" style="background:var(--bg);border-radius:10px;padding:1rem;display:none;margin-bottom:1rem">
+        <div class="tl">⏳ Queue Position</div>
+        <div class="tv" id="tQueuePos" style="font-size:0.95rem">—</div>
+      </div>
+      <div class="track-item" id="tDistanceRow" style="background:var(--bg);border-radius:10px;padding:1rem;display:none;margin-bottom:1rem">
+        <div class="tl">📍 Distance away</div>
+        <div class="tv" id="tDistance" style="font-size:0.95rem">—</div>
+      </div>
+      <div class="track-item" id="tStopsRow" style="background:var(--bg);border-radius:10px;padding:1rem;display:none;margin-bottom:1rem">
+        <div class="tl">📦 Stops</div>
+        <div class="tv" id="tStops" style="font-size:0.95rem">—</div>
+      </div>
+      <div class="track-item" style="background:var(--bg);border-radius:10px;padding:1rem">
+        <div class="tl">🛣️ Route</div>
+        <div class="tv" id="tPosition" style="font-size:0.85rem">—</div>
+      </div>
+      <button class="btn btn-ghost mt-3" style="width:100%;justify-content:center" onclick="refreshTrack()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- ADD LOCATION MODAL -->
+  <div class="modal-overlay" id="locModal">
+    <div class="modal">
+      <div class="modal-hdr">
+        <h3>Add Saved Location</h3>
+        <button class="close-btn" onclick="document.getElementById('locModal').classList.remove('open')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Label (e.g. Home, Office)</label>
+        <input type="text" id="locLabel" placeholder="Home"/>
+      </div>
+      <div class="form-group">
+        <label>Full Address</label>
+        <input type="text" id="locAddress" placeholder="45 King Street, Medenine"/>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveLocation()">Save Location</button>
+    </div>
+  </div>
+
+  <footer class="footer">© 2026 Drovery. All rights reserved.</footer>
+
+  <script src="api.js"></script>
+  <script>
+    let trackInterval = null;
+    let currentTrackOrderId = null;
+
+    const STATUS_PROGRESS = {
+      pending: 5, confirmed: 20, dispatched: 40,
+      in_transit: 70, delivered: 100, cancelled: 0
+    };
+
+    // Professional customer-facing copy for each internal mission phase —
+    // never the raw MAVLink/internal status text.
+    const MISSION_LABELS = {
+      'Not dispatched':      'Preparing your delivery',
+      'Waiting for drone':   'Preparing your delivery',
+      'Taking off':          'Drone departing',
+      'Going to pickup':     'En route to pickup',
+      'Package picked':      'Package secured',
+      'Going to client':     'On the way to you',
+      'Delivered':           'Delivered',
+      'Completed':           'Delivered',
+      'Dispatch failed':     'Preparing your delivery',
+      'Error':               "We're resolving an issue with your delivery",
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!isLoggedIn()) { window.location.href = 'login.html'; return; }
+      if (alertsEnabled) document.getElementById('enableAlertsBtn').style.display = 'none';
+      await loadProfile();
+      await loadOrders();
+      await loadLocations();
+      setInterval(loadOrders, 8000); // keep active/history lists live without a manual refresh
+    });
+
+    async function loadProfile() {
+      const user = await apiFetch('/users/me');
+      document.getElementById('userAvatar').textContent = user.first_name[0].toUpperCase();
+      document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
+      document.getElementById('userEmail').textContent = user.email;
+    }
+
+    async function cancelOrder(orderId) {
+      if (!confirm('Cancel this order? If a drone is already flying it, it will return to base immediately.')) return;
+      try {
+        await apiFetch(`/orders/${orderId}/cancel`, { method: 'POST' });
+        await loadOrders();
+      } catch (e) {
+        alert('Could not cancel: ' + e.message);
+      }
+    }
+
+    // ── DELIVERY ALERTS (Notification API + sound, works while the tab is
+    // open — even backgrounded — but not if the browser is fully closed) ──
+    let previousOrderStatuses = {};
+    let alertsEnabled = (localStorage.getItem('drovery_alerts') === 'on');
+
+    function playAlertTone() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.6);
+      } catch { /* Web Audio unsupported — silently skip the beep */ }
+    }
+
+    function showToast(message) {
+      let toast = document.getElementById('alertToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'alertToast';
+        toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#111827;color:#fff;padding:0.9rem 1.2rem;border-radius:12px;font-size:0.9rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);z-index:99999;max-width:320px;opacity:0;transition:opacity .3s';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.style.opacity = '1';
+      clearTimeout(toast._hideTimer);
+      toast._hideTimer = setTimeout(() => { toast.style.opacity = '0'; }, 5000);
+    }
+
+    function fireDeliveryAlert(message) {
+      playAlertTone();
+      showToast(message); // always shown, regardless of Notification permission
+      if (alertsEnabled && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification('Drovery', { body: message });
+      }
+    }
+
+    async function enableAlerts() {
+      if (!('Notification' in window)) {
+        alertsEnabled = true;
+        localStorage.setItem('drovery_alerts', 'on');
+        showToast('Alerts enabled (sound + on-page only — this browser has no desktop notifications).');
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      alertsEnabled = true;
+      localStorage.setItem('drovery_alerts', 'on');
+      document.getElementById('enableAlertsBtn').style.display = 'none';
+      showToast(perm === 'granted'
+        ? "Delivery alerts enabled — you'll get a sound + notification while this site is open."
+        : "Sound alerts enabled. Allow notifications in your browser settings for desktop pop-ups too.");
+    }
+
+    function checkForStatusChanges(orders) {
+      const IMPORTANT = { delivered: '✅ Order #%d delivered!', cancelled: '⚠️ Order #%d was cancelled.' };
+      orders.forEach(o => {
+        const prev = previousOrderStatuses[o.id];
+        if (prev !== undefined && prev !== o.status && IMPORTANT[o.status]) {
+          fireDeliveryAlert(IMPORTANT[o.status].replace('%d', o.id));
+        }
+        previousOrderStatuses[o.id] = o.status;
+      });
+    }
+
+    let allOrdersCache = [];
+
+    async function loadOrders() {
+      const orders = await apiFetch('/orders');
+      allOrdersCache = orders;
+      checkForStatusChanges(orders);
+      const active = orders.filter(o => !['delivered','cancelled'].includes(o.status));
+      const history = orders.filter(o => ['delivered','cancelled'].includes(o.status));
+
+      document.getElementById('orderCount').textContent = orders.length;
+      const total = orders.reduce((s, o) => s + o.price, 0);
+      document.getElementById('totalSpent').textContent = '$' + total.toFixed(0);
+
+      renderOrders('activeOrders', active, true);
+      renderOrders('orderHistory', history, false);
+    }
+
+    function renderOrders(containerId, orders, showTrack) {
+      const el = document.getElementById(containerId);
+      if (!orders.length) {
+        el.innerHTML = `<div class="empty"><div class="ei">${showTrack ? '📭' : '📋'}</div><p>No orders here yet</p></div>`;
+        return;
+      }
+      el.innerHTML = orders.map(o => {
+        const extraStops = (o.extra_dropoffs || []);
+        const routeHtml = extraStops.length
+          ? `📦 <b>${o.pickup_address}</b><br>` +
+            [o.dropoff_address, ...extraStops.map(d => d.address)]
+              .map((a, i) => `<span class="addr">→ Stop ${i + 1}: ${a}</span>`).join('<br>')
+          : `📦 <b>${o.pickup_address}</b><br><span class="addr">→ ${o.dropoff_address}</span>`;
+
+        const isDelivered = o.status === 'delivered';
+        const ratingHtml = isDelivered ? (
+          o.rating
+            ? `<div style="font-size:0.85rem;margin-top:0.4rem">${'★'.repeat(o.rating)}${'☆'.repeat(5 - o.rating)}</div>`
+            : `<div style="margin-top:0.4rem" id="rateStars-${o.id}">
+                 ${[1,2,3,4,5].map(n => `<span style="cursor:pointer;font-size:1.1rem;color:#d1d5db" onclick="submitRating(${o.id},${n})" onmouseover="this.parentElement.querySelectorAll('span').forEach((s,i)=>s.style.color=i<${n}?'#f59e0b':'#d1d5db')">☆</span>`).join('')}
+               </div>`
+        ) : '';
+
+        return `
+        <div class="order-card">
+          <div class="order-top">
+            <div>
+              <div class="order-id">Order #${o.id}</div>
+              <div class="order-route">${routeHtml}</div>
+            </div>
+            <span class="badge badge-${o.status}">${o.status.replace('_',' ')}</span>
+          </div>
+          <div class="order-footer">
+            <div>
+              <div class="order-price">$${o.price.toFixed(2)}</div>
+              <div class="order-date">${new Date(o.created_at).toLocaleDateString()}</div>
+              ${ratingHtml}
+            </div>
+            ${showTrack ? `
+              <button class="btn btn-outline btn-sm" onclick="openTrack(${o.id})">🚁 Track</button>
+              <button class="btn btn-outline btn-sm" style="color:#dc2626;border-color:#fecaca" onclick="cancelOrder(${o.id})">✕ Cancel</button>
+            ` : `
+              <button class="btn btn-outline btn-sm" onclick="openReceipt(${o.id})">🧾 Receipt</button>
+            `}
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    async function submitRating(orderId, stars) {
+      try {
+        await apiFetch(`/orders/${orderId}/rating`, {
+          method: 'POST',
+          body: JSON.stringify({ rating: stars })
+        });
+        await loadOrders();
+      } catch (e) {
+        alert('Could not submit rating: ' + e.message);
+      }
+    }
+
+    function openReceipt(orderId) {
+      const order = allOrdersCache.find(o => o.id === orderId);
+      if (!order) return;
+      const stops = [order.dropoff_address, ...(order.extra_dropoffs || []).map(d => d.address)];
+      const win = window.open('', '_blank');
+      win.document.write(`
+        <html><head><title>Receipt — Order #${order.id}</title>
+        <style>
+          body { font-family: -apple-system, sans-serif; max-width: 480px; margin: 3rem auto; color: #111827; }
+          h1 { font-size: 1.3rem; margin-bottom: 0.2rem; }
+          .muted { color: #6b7280; font-size: 0.85rem; margin-bottom: 2rem; }
+          table { width: 100%; border-collapse: collapse; }
+          td { padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb; font-size: 0.9rem; }
+          td:last-child { text-align: right; font-weight: 600; }
+          .total td { font-size: 1.1rem; font-weight: 800; border-bottom: none; padding-top: 1rem; }
+          @media print { button { display: none; } }
+        </style></head><body>
+        <h1>🚁 Drovery — Receipt</h1>
+        <div class="muted">Order #${order.id} — ${new Date(order.created_at).toLocaleString()}</div>
+        <table>
+          <tr><td>Pickup</td><td>${order.pickup_address}</td></tr>
+          ${stops.map((s, i) => `<tr><td>Drop-off ${stops.length > 1 ? '#' + (i+1) : ''}</td><td>${s}</td></tr>`).join('')}
+          <tr><td>Package weight</td><td>${order.package_weight} kg</td></tr>
+          <tr><td>Payment status</td><td>${order.payment_status}</td></tr>
+          <tr class="total"><td>Total paid</td><td>$${order.price.toFixed(2)}</td></tr>
+        </table>
+        <p style="margin-top:2rem"><button onclick="window.print()">🖨️ Print / Save as PDF</button></p>
+        </body></html>
+      `);
+      win.document.close();
+    }
+
+    async function openTrack(orderId) {
+      currentTrackOrderId = orderId;
+      document.getElementById('trackOrderId').textContent = `#${orderId}`;
+      document.getElementById('trackModal').classList.add('open');
+      await refreshTrack();
+      trackInterval = setInterval(refreshTrack, 5000);
+    }
+
+    async function refreshTrack() {
+      if (!currentTrackOrderId) return;
+      try {
+        const [order, tracking] = await Promise.all([
+          apiFetch(`/orders/${currentTrackOrderId}`),
+          apiFetch(`/orders/${currentTrackOrderId}/track`)
+        ]);
+        const pct = STATUS_PROGRESS[order.status] || 0;
+        document.getElementById('trackProgress').style.width = pct + '%';
+        document.getElementById('trackStatus').textContent = `Status: ${order.status.replace('_',' ').toUpperCase()} (${pct}%)`;
+        const friendlyStatus = MISSION_LABELS[tracking.mission_status] || tracking.mission_status || 'Not dispatched';
+        document.getElementById('tMissionStatus').textContent = friendlyStatus;
+        document.getElementById('tDroneId').textContent = tracking.drone_number ? `Drone #${tracking.drone_number}` : '—';
+        document.getElementById('tPosition').textContent = `${order.pickup_address}  →  ${[order.dropoff_address, ...(order.extra_dropoffs||[]).map(d=>d.address)].join(' → ')}`;
+
+        const stopsRow = document.getElementById('tStopsRow');
+        if (tracking.stops_total != null && tracking.stops_total > 1) {
+          stopsRow.style.display = 'block';
+          document.getElementById('tStops').textContent = `Stop ${(tracking.stops_done ?? 0) + 1} of ${tracking.stops_total}`;
+        } else {
+          stopsRow.style.display = 'none';
+        }
+
+        const distRow = document.getElementById('tDistanceRow');
+        if (tracking.distance_km != null) {
+          distRow.style.display = 'block';
+          document.getElementById('tDistance').textContent = `📍 ${tracking.distance_km} km away`;
+        } else {
+          distRow.style.display = 'none';
+        }
+
+        if (['delivered', 'cancelled'].includes(order.status)) {
+          clearInterval(trackInterval);
+          await loadOrders(); // move it from Active to History immediately, no manual refresh needed
+        }
+
+        const queueRow = document.getElementById('tQueueRow');
+        if (tracking.queue_position) {
+          queueRow.style.display = 'block';
+          document.getElementById('tQueuePos').textContent = `#${tracking.queue_position} in line`;
+        } else {
+          queueRow.style.display = 'none';
+        }
+
+        const errBanner = document.getElementById('trackErrorBanner');
+        if (tracking.error_message) {
+          errBanner.style.display = 'block';
+          errBanner.textContent = `⚠️ ${tracking.error_message}`;
+        } else {
+          errBanner.style.display = 'none';
+        }
+      } catch (e) { /* silently ignore */ }
+    }
+
+    function closeTrack() {
+      clearInterval(trackInterval);
+      currentTrackOrderId = null;
+      document.getElementById('trackModal').classList.remove('open');
+    }
+
+    async function loadLocations() {
+      const locs = await apiFetch('/locations');
+      const el = document.getElementById('locationsList');
+      if (!locs.length) {
+        el.innerHTML = '<div class="empty"><p>No saved locations yet</p></div>';
+        return;
+      }
+      const icons = { Home: '🏠', Office: '🏢', default: '📍' };
+      el.innerHTML = locs.map(l => `
+        <div class="loc-item">
+          <div>
+            <span class="loc-icon">${icons[l.label] || icons.default}</span>
+            <b>${l.label}</b> — <span style="color:var(--muted);font-size:0.88rem">${l.address}</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="deleteLocation(${l.id})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function showAddLocation() {
+      document.getElementById('locModal').classList.add('open');
+    }
+
+    async function saveLocation() {
+      const label = document.getElementById('locLabel').value.trim();
+      const address = document.getElementById('locAddress').value.trim();
+      if (!label || !address) return alert('Please fill both fields.');
+      await apiFetch('/locations', { method: 'POST', body: JSON.stringify({ label, address }) });
+      document.getElementById('locModal').classList.remove('open');
+      await loadLocations();
+    }
+
+    async function deleteLocation(id) {
+      await apiFetch(`/locations/${id}`, { method: 'DELETE' });
+      await loadLocations();
+    }
+
+    function logout() {
+      clearToken();
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

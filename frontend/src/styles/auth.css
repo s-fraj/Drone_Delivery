@@ -1,0 +1,25 @@
+.auth-page {
+  min-height: calc(100vh - 90px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 6rem 1.5rem 3rem;
+  background: linear-gradient(135deg, var(--navy) 0%, #0a1e45 100%);
+
+  .auth-box {
+    background: #fff; border-radius: 20px; box-shadow: var(--shadow-lg);
+    width: 100%; max-width: 440px; padding: 2.5rem 2.2rem 2rem;
+    &.wide { max-width: 500px; }
+  }
+  .auth-logo {
+    font-family: 'Space Mono', monospace; font-size: 1.5rem; font-weight: 700;
+    color: var(--blue); text-align: center; margin-bottom: 0.25rem; letter-spacing: 0.04em;
+  }
+  .auth-tagline { text-align: center; color: var(--muted); font-size: 0.88rem; margin-bottom: 2rem; }
+  .auth-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--navy); letter-spacing: -0.02em; }
+  .auth-footer { text-align: center; margin-top: 1.2rem; font-size: 0.88rem; color: var(--muted); }
+  .auth-footer a { color: var(--blue); font-weight: 600; text-decoration: none; }
+  .btn-primary { width: 100%; justify-content: center; padding: 0.82rem; font-size: 1rem; }
+  .divider { display: flex; align-items: center; gap: 1rem; margin: 1.2rem 0; }
+  .divider span { flex: 1; height: 1px; background: var(--border); }
+  .divider p { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+  .terms { font-size: 0.78rem; color: var(--muted); text-align: center; margin-top: 1rem; }
+}

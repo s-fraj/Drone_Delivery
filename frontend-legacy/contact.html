@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact — Drovery</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    body { background: var(--bg); }
+    .contact-layout {
+      max-width: 1000px;
+      margin: 4rem auto;
+      padding: 0 2rem 4rem;
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+    .contact-info h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: 1rem; }
+    .contact-info p { color: var(--muted); line-height: 1.8; margin-bottom: 1.5rem; font-size: 0.95rem; }
+    .info-item { display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 1rem; }
+    .info-item .ic { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .info-item .il { font-size: 0.88rem; }
+    .info-item .il b { display: block; font-weight: 700; color: var(--navy); margin-bottom: 0.1rem; }
+    .info-item .il span { color: var(--muted); }
+
+    .contact-form .card { padding: 2rem; }
+    .contact-form h3 { font-size: 1.2rem; font-weight: 800; margin-bottom: 1.5rem; }
+    .btn-submit { width: 100%; justify-content: center; }
+
+    .success-banner { background: #d1fae5; color: #065f46; padding: 0.8rem 1rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; display: none; margin-bottom: 1rem; }
+
+    .map-section { max-width: 1000px; margin: 0 auto 4rem; padding: 0 2rem; }
+    .map-section iframe { border-radius: 16px; box-shadow: var(--shadow); display: block; width: 100%; }
+
+    @media (max-width: 768px) {
+      .contact-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="logo">Drovery</a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about_us.html">About</a></li>
+      <li><a href="contact.html" class="active">Contact</a></li>
+      <li id="nav-auth"><a href="login.html" class="nav-cta">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-hero">
+    <h1>Contact Us</h1>
+    <p>We're here to help 24/7 — reach out anytime!</p>
+  </div>
+
+  <div class="contact-layout">
+    <!-- INFO -->
+    <div class="contact-info">
+      <h3>Get In Touch</h3>
+      <p>Have questions, feedback, or partnership inquiries? Our support team is always ready to assist you.</p>
+      <div class="info-item">
+        <span class="ic">📍</span>
+        <div class="il"><b>Address</b><span>Medenine, Tunisia</span></div>
+      </div>
+      <div class="info-item">
+        <span class="ic">📞</span>
+        <div class="il"><b>Phone</b><span>+216 XX XXX XXX</span></div>
+      </div>
+      <div class="info-item">
+        <span class="ic">✉️</span>
+        <div class="il"><b>Email</b><span>support@drovery.tn</span></div>
+      </div>
+      <div class="info-item">
+        <span class="ic">🕒</span>
+        <div class="il"><b>Working Hours</b><span>Mon–Sat: 8:00 AM – 10:00 PM<br>Sunday: 9:00 AM – 6:00 PM</span></div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="contact-form">
+      <div class="card">
+        <h3>Send a Message</h3>
+        <div class="success-banner" id="successBanner">✅ Message sent! We'll be in touch shortly.</div>
+        <form id="contactForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" placeholder="Fraj" required/>
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" placeholder="Selmi" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="you@example.com" required/>
+          </div>
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" placeholder="How can we help?" required/>
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea rows="5" placeholder="Your message…" required style="resize:vertical"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-section">
+    <iframe
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3023.873940616875!2d-74.00601558459607!3d40.71277597933025!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a316bdf7c3d%3A0xdee8dbcb316f6e84!2sNew%20York%20City%2C%20NY!5e0!3m2!1sen!2sus!4v1616438773150!5m2!1sen!2sus"
+      height="380" style="border:0;" allowfullscreen="" loading="lazy">
+    </iframe>
+  </div>
+
+  <footer class="footer">© 2026 Drovery. All rights reserved.</footer>
+  <script src="api.js"></script>
+  <script>
+    document.getElementById('contactForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      document.getElementById('successBanner').style.display = 'block';
+      e.target.reset();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+.order-page { padding-top: 66px; }
+.order-layout {
+  max-width: 860px; margin: 3rem auto; padding: 0 1.5rem 4rem;
+  h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: -.03em; margin-bottom: .4rem; }
+  .subtitle { color: var(--muted); margin-bottom: 2rem; }
+  .step-header { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.2rem; }
+  .step-num { width: 32px; height: 32px; background: var(--blue); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .85rem; font-weight: 800; flex-shrink: 0; }
+  .step-header h3 { font-size: 1.05rem; font-weight: 800; letter-spacing: -.01em; }
+  .card { margin-bottom: 1.5rem; }
+  .readonly-input { cursor: pointer; }
+
+  .extra-stop { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #e5e7eb; }
+  .extra-stop-hdr { display: flex; justify-content: space-between; align-items: center; }
+  .link-danger { color: #dc2626; background: none; border: none; cursor: pointer; font-size: .78rem; }
+
+  .price-preview { background: var(--navy); color: #fff; border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+  .price-preview .label { color: rgba(255,255,255,.55); font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+  .price-preview .amount { font-size: 2.4rem; font-weight: 900; color: #fff; font-family: 'Space Mono', monospace; }
+  .price-breakdown { display: flex; gap: 2rem; margin-top: .8rem; flex-wrap: wrap; }
+  .price-breakdown span { font-size: .82rem; color: rgba(255,255,255,.5); }
+  .price-breakdown b { color: rgba(255,255,255,.85); }
+
+  .card-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem; }
+  .card-field { position: relative; }
+  .card-icon { position: absolute; right: .9rem; top: 2.6rem; font-size: 1.2rem; }
+  .card-field input { padding-right: 2.5rem; width: 100%; }
+
+  .submit-area { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .submit-btn { min-width: 200px; justify-content: center; padding: .9rem 2rem; font-size: 1rem; }
+
+  .paused { text-align: center; padding: 4rem 1.5rem; background: var(--bg); border-radius: var(--radius); }
+  .paused h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: .5rem; }
+  .paused p { max-width: 420px; margin: 0 auto 1.5rem; }
+}
+.success-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7);
+  display: flex; align-items: center; justify-content: center; z-index: 9999;
+  .success-box { background: #fff; border-radius: 20px; padding: 3rem 2.5rem; text-align: center; max-width: 420px; width: 90%; }
+  .success-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+  .success-box h2 { font-size: 1.6rem; font-weight: 900; margin-bottom: .5rem; }
+  .success-box p { color: var(--muted); margin-bottom: 1.5rem; }
+}

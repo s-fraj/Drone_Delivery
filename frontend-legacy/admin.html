@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Drovery</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    body { padding-top: 66px; background: var(--bg); }
+    .admin-layout {
+      max-width: 1200px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem 4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .admin-layout h1 { font-size: 1.6rem; font-weight: 900; letter-spacing: -0.02em; }
+    .admin-layout .subtitle { color: var(--muted); margin-top: 0.2rem; }
+
+    .section-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .section-hdr h2 { font-size: 1.05rem; font-weight: 800; }
+
+    /* Fleet cards */
+    .fleet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.8rem; }
+    .drone-card {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .drone-card.idle { border-color: var(--success); background: #f0fdf4; }
+    .drone-card.busy { border-color: var(--warning); background: #fffbeb; }
+    .drone-card.returning_home { border-color: #6366f1; background: #eef2ff; }
+    .drone-card.offline { border-color: #9ca3af; background: #f3f4f6; opacity: 0.75; }
+    .drone-card .dnum { font-family: 'Space Mono', monospace; font-weight: 800; font-size: 1.1rem; }
+    .drone-card .dstatus { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.3rem; font-weight: 700; }
+    .drone-card.idle .dstatus { color: #15803d; }
+    .drone-card.busy .dstatus { color: #b45309; }
+    .drone-card.returning_home .dstatus { color: #4338ca; }
+    .drone-card.offline .dstatus { color: #6b7280; }
+    #fleetMap { height: 380px; border-radius: 12px; margin-top: 1rem; }
+    .queue-pill { font-size: 0.82rem; color: var(--muted); margin-top: 0.6rem; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    th { text-align: left; padding: 0.6rem 0.7rem; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1.5px solid var(--border); }
+    td { padding: 0.7rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .mono { font-family: 'Space Mono', monospace; }
+    .row-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .err-cell { color: var(--danger); font-size: 0.78rem; max-width: 220px; }
+    .table-wrap { overflow-x: auto; }
+    select.status-select { padding: 0.4rem 0.6rem; border-radius: 8px; border: 1.5px solid var(--border); font-size: 0.8rem; }
+
+    .health-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.4rem; }
+    .health-dot.up { background: var(--success); }
+    .health-dot.down { background: var(--danger); }
+
+    .empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="logo">Drovery</a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="admin.html" class="active">Admin</a></li>
+      <li id="nav-auth"><a href="login.html" class="nav-cta">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="admin-layout">
+    <div>
+      <h1>🛠️ Admin Dashboard</h1>
+      <p class="subtitle">Fleet status and order management — pulled live from the drone service.</p>
+    </div>
+
+    <!-- FLEET STATUS -->
+    <div class="card">
+      <div class="section-hdr">
+        <h2>🚁 Fleet Status</h2>
+        <div>
+          <span id="serviceHealth" style="font-size:0.82rem;color:var(--muted)"><span class="health-dot" id="healthDot"></span><span id="healthText">Checking…</span></span>
+          <button class="btn btn-ghost btn-sm" style="margin-left:0.8rem" onclick="loadAll()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="fleetGrid" class="fleet-grid"><div class="empty">Loading fleet…</div></div>
+      <div class="queue-pill" id="queueSummary"></div>
+      <div id="fleetMap"></div>
+      <div id="serviceControlBanner" style="display:none;margin-top:1rem;padding:0.8rem 1rem;border-radius:10px;font-size:0.85rem;font-weight:600"></div>
+      <div style="display:flex;gap:0.6rem;margin-top:1rem">
+        <button class="btn btn-outline btn-sm" id="pauseToggleBtn" onclick="togglePause()">⏸ Pause new orders</button>
+        <button class="btn btn-outline btn-sm" style="color:#dc2626;border-color:#fecaca" onclick="triggerEmergencyStop()">🛑 Emergency Stop</button>
+      </div>
+    </div>
+
+    <!-- AUDIT LOG -->
+    <div class="card">
+      <div class="section-hdr">
+        <h2>🧾 Admin Audit Log</h2>
+        <button class="btn btn-ghost btn-sm" onclick="loadAuditLog()">↻ Refresh</button>
+      </div>
+      <div id="auditLogList" style="font-size:0.85rem"><div class="empty">Loading…</div></div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="card">
+      <div class="section-hdr">
+        <h2>📦 All Orders</h2>
+        <button class="btn btn-outline btn-sm" onclick="exportOrdersCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Customer</th><th>Route</th><th>Price</th>
+              <th>Payment</th><th>Status</th><th>Mission</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody">
+            <tr><td colspan="8" class="empty">Loading orders…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="card">
+      <div class="section-hdr">
+        <h2>👥 Users</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th></tr></thead>
+          <tbody id="usersBody">
+            <tr><td colspan="6" class="empty">Loading users…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">© 2026 Drovery. Admin panel.</footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="api.js"></script>
+  <script>
+    const ORDER_STATUSES = ['pending','confirmed','dispatched','in_transit','delivered','cancelled'];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const admin = await requireAdmin();
+      if (!admin) return;
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission(); // silent — admin alerts fall back to sound+toast either way
+      }
+      await loadAll();
+      await loadServiceState();
+      await loadAuditLog();
+      setInterval(loadOrders, 8000);       // orders/users: fine at a relaxed pace
+      setInterval(loadUsers, 8000);
+      setInterval(loadFleet, 2000);        // fleet map: fast poll so movement reads as live
+      setInterval(loadServiceState, 8000);
+    });
+
+    // ── PAUSE / EMERGENCY STOP ───────────────────────────────────
+    let currentAcceptingOrders = true;
+
+    async function loadServiceState() {
+      try {
+        const state = await apiFetch('/admin/service-state');
+        currentAcceptingOrders = state.accepting_orders;
+        const btn = document.getElementById('pauseToggleBtn');
+        const banner = document.getElementById('serviceControlBanner');
+        btn.textContent = currentAcceptingOrders ? '⏸ Pause new orders' : '▶ Resume orders';
+        if (!currentAcceptingOrders) {
+          banner.style.display = 'block';
+          banner.style.background = '#fef3c7';
+          banner.style.color = '#92400e';
+          banner.textContent = '⏸ Paused — ' + (state.message || 'not accepting new orders.');
+        } else {
+          banner.style.display = 'none';
+        }
+      } catch (e) {
+        console.error('Could not load service state', e);
+      }
+    }
+
+    async function togglePause() {
+      const willPause = currentAcceptingOrders;
+      const message = willPause
+        ? (prompt('Message to show customers while paused (optional):', "We're briefly offline for maintenance — please check back shortly.") ?? undefined)
+        : null;
+      if (willPause && message === undefined) return; // cancelled the prompt
+      try {
+        await apiFetch('/admin/service-state', {
+          method: 'POST',
+          body: JSON.stringify({ accepting_orders: !willPause, message: willPause ? message : null })
+        });
+        await loadServiceState();
+        await loadAuditLog();
+      } catch (e) {
+        alert('Could not update service state: ' + e.message);
+      }
+    }
+
+    async function triggerEmergencyStop() {
+      if (!confirm('Emergency stop: pauses new orders AND immediately recalls every airborne drone home. Continue?')) return;
+      const message = prompt('Message to show customers (optional):', "We've paused deliveries for an emergency stop. All drones are returning to base.");
+      try {
+        const result = await apiFetch('/admin/emergency-stop', {
+          method: 'POST',
+          body: JSON.stringify({ message })
+        });
+        alert(result.message || 'Emergency stop triggered.');
+        await loadServiceState();
+        await loadAuditLog();
+        await loadOrders();
+      } catch (e) {
+        alert('Could not trigger emergency stop: ' + e.message);
+      }
+    }
+
+    // ── AUDIT LOG ─────────────────────────────────────────────────
+    async function loadAuditLog() {
+      const el = document.getElementById('auditLogList');
+      try {
+        const entries = await apiFetch('/admin/audit-log');
+        if (!entries.length) {
+          el.innerHTML = '<div class="empty">No admin actions yet</div>';
+          return;
+        }
+        el.innerHTML = entries.map(e => `
+          <div style="padding:0.5rem 0;border-bottom:1px solid #f1f5f9">
+            <b>${(e.admin_name || 'Admin #' + e.admin_id)}</b> — ${e.action.replace('_',' ')}
+            ${e.details ? `<span class="text-muted"> — ${e.details}</span>` : ''}
+            <div class="text-muted" style="font-size:0.75rem">${new Date(e.created_at).toLocaleString()}</div>
+          </div>
+        `).join('');
+      } catch (e) {
+        el.innerHTML = '<div class="empty">Could not load audit log</div>';
+      }
+    }
+
+    // ── CSV EXPORT ────────────────────────────────────────────────
+    async function exportOrdersCSV() {
+      try {
+        const res = await fetch(API + '/admin/orders/export', {
+          headers: { Authorization: 'Bearer ' + getToken() }
+        });
+        if (!res.ok) throw new Error('Export failed');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'orders.csv'; a.click();
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        alert('Could not export orders: ' + e.message);
+      }
+    }
+
+    // ── ADMIN ALERTING (new dispatch errors) ────────────────────────
+    let previousOrderErrors = {};
+    function playAdminAlertTone() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(660, ctx.currentTime);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.start(); osc.stop(ctx.currentTime + 0.4);
+      } catch {}
+    }
+    function checkForNewErrors(orders) {
+      orders.forEach(o => {
+        const err = o.tracking && o.tracking.error_message;
+        if (err && previousOrderErrors[o.id] !== err) {
+          playAdminAlertTone();
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Drovery admin', { body: `Order #${o.id}: ${err}` });
+          }
+        }
+        previousOrderErrors[o.id] = err || null;
+      });
+    }
+    async function loadAll() {
+      await Promise.all([loadFleet(), loadOrders(), loadUsers()]);
+    }
+
+    let fleetMap = null;
+    const droneMarkers = {}; // drone_id -> L.CircleMarker
+    const dronePaths = {};   // drone_id -> L.Polyline (live flown trail)
+    let orderMarkersLayer = null; // pickup/dropoff pins + planned route for active orders
+    let lastOrders = [];
+    const DRONE_COLORS = { idle: '#16a34a', busy: '#d97706', returning_home: '#4f46e5', offline: '#9ca3af' };
+
+    function ensureFleetMap() {
+      if (fleetMap) return;
+      fleetMap = L.map('fleetMap').setView([33.343, 10.491], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors', maxZoom: 19
+      }).addTo(fleetMap);
+    }
+
+    function updateFleetMap(drones) {
+      ensureFleetMap();
+      drones.forEach(([id, d]) => {
+        if (d.lat == null || d.lng == null) return;
+        const color = DRONE_COLORS[d.status] || '#64748b';
+
+        if (droneMarkers[id]) {
+          droneMarkers[id].setLatLng([d.lat, d.lng]);
+          droneMarkers[id].setStyle({ color, fillColor: color });
+        } else {
+          droneMarkers[id] = L.circleMarker([d.lat, d.lng], {
+            radius: 9, color, fillColor: color, fillOpacity: 0.85, weight: 2
+          }).addTo(fleetMap).bindTooltip(`Drone #${id} — ${d.status}`);
+        }
+        droneMarkers[id].setTooltipContent(`Drone #${id} — ${d.status}${d.battery_pct != null ? ` — 🔋${Math.round(d.battery_pct)}%` : ''}`);
+
+        // Live flown trail — recorded server-side at true telemetry rate,
+        // so it stays smooth even though this poll only runs every 2s.
+        const trail = d.trail || [];
+        if (trail.length > 1) {
+          if (dronePaths[id]) {
+            dronePaths[id].setLatLngs(trail);
+            dronePaths[id].setStyle({ color });
+          } else {
+            dronePaths[id] = L.polyline(trail, { color, weight: 3, opacity: 0.8 }).addTo(fleetMap);
+          }
+        } else if (dronePaths[id]) {
+          dronePaths[id].setLatLngs([]);
+        }
+      });
+      fleetMap.invalidateSize();
+    }
+
+    function updateOrderMarkers(orders) {
+      ensureFleetMap();
+      if (orderMarkersLayer) fleetMap.removeLayer(orderMarkersLayer);
+      orderMarkersLayer = L.layerGroup();
+
+      const pickupIcon = L.divIcon({
+        html: '📦', className: '', iconSize: [22, 22], iconAnchor: [11, 11]
+      });
+      const dropoffIcon = L.divIcon({
+        html: '🏁', className: '', iconSize: [22, 22], iconAnchor: [11, 11]
+      });
+
+      orders
+        .filter(o => ['dispatched', 'in_transit'].includes(o.status))
+        .forEach(o => {
+          if (o.pickup_lat == null || o.dropoff_lat == null) return;
+          const pickup = [o.pickup_lat, o.pickup_lng];
+          const dropoff = [o.dropoff_lat, o.dropoff_lng];
+
+          L.marker(pickup, { icon: pickupIcon })
+            .bindTooltip(`Order #${o.id} — pickup`).addTo(orderMarkersLayer);
+          L.marker(dropoff, { icon: dropoffIcon })
+            .bindTooltip(`Order #${o.id} — drop-off`).addTo(orderMarkersLayer);
+
+          // Planned route (straight line), dashed to distinguish it from
+          // the drone's actual flown trail drawn in updateFleetMap.
+          L.polyline([pickup, dropoff], {
+            color: '#64748b', weight: 2, dashArray: '6 8', opacity: 0.6
+          }).addTo(orderMarkersLayer);
+        });
+
+      orderMarkersLayer.addTo(fleetMap);
+    }
+
+    async function loadFleet() {
+      const healthDot = document.getElementById('healthDot');
+      const healthText = document.getElementById('healthText');
+      try {
+        const health = await apiFetch('/admin/drone-service-health');
+        healthDot.className = 'health-dot ' + (health.healthy ? 'up' : 'down');
+        healthText.textContent = health.healthy ? 'Drone service online' : 'Drone service unreachable';
+      } catch (e) {
+        healthDot.className = 'health-dot down';
+        healthText.textContent = 'Drone service unreachable';
+      }
+
+      const grid = document.getElementById('fleetGrid');
+      try {
+        const fleet = await apiFetch('/admin/fleet');
+        const drones = Object.entries(fleet.drones || {});
+        if (!drones.length) {
+          grid.innerHTML = '<div class="empty">No drones configured on the fleet service.</div>';
+        } else {
+          grid.innerHTML = drones.map(([id, d]) => `
+            <div class="drone-card ${d.status}">
+              <div class="dnum">Drone #${id}</div>
+              <div class="dstatus">${d.status.replace('_',' ')}</div>
+              ${d.battery_pct != null ? `<div style="font-size:0.75rem;margin-top:0.3rem;color:var(--muted)">🔋 ${Math.round(d.battery_pct)}%</div>` : ''}
+            </div>
+          `).join('');
+          updateFleetMap(drones);
+        }
+        document.getElementById('queueSummary').textContent =
+          fleet.queue_length ? `⏳ ${fleet.queue_length} mission(s) waiting in queue` : '';
+      } catch (e) {
+        grid.innerHTML = `<div class="empty">Could not load fleet status — ${e.message}</div>`;
+      }
+    }
+
+    async function loadOrders() {
+      const body = document.getElementById('ordersBody');
+      try {
+        const orders = await apiFetch('/admin/orders');
+        lastOrders = orders;
+        checkForNewErrors(orders);
+        updateOrderMarkers(orders);
+        if (!orders.length) {
+          body.innerHTML = '<tr><td colspan="8" class="empty">No orders yet</td></tr>';
+          return;
+        }
+        body.innerHTML = orders.map(o => {
+          const t = o.tracking || {};
+          const canRetry = o.payment_status === 'paid' && (!t.mission_id || t.error_message);
+          const inFlight = !!t.mission_id &&
+            !['Completed', 'Delivered', 'Error', 'Dispatch failed'].includes(t.mission_status) &&
+            !['delivered', 'cancelled'].includes(o.status);
+          return `
+            <tr>
+              <td class="mono">#${o.id}</td>
+              <td>${o.user_name}<br><span class="text-muted" style="font-size:0.76rem">${o.user_email}</span></td>
+              <td style="max-width:220px">${o.pickup_address} → ${o.dropoff_address}</td>
+              <td class="mono">$${o.price.toFixed(2)}</td>
+              <td><span class="badge badge-${o.payment_status === 'paid' ? 'delivered' : 'pending'}">${o.payment_status}</span></td>
+              <td>
+                ${inFlight
+                  ? `<span class="badge badge-pending" title="Status is driven by live drone telemetry while in flight — it isn't manually editable until delivered.">${o.status.replace('_',' ')} 🚁</span>`
+                  : `<select class="status-select" onchange="overrideStatus(${o.id}, this.value)">
+                       ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s.replace('_',' ')}</option>`).join('')}
+                     </select>`
+                }
+              </td>
+              <td>
+                ${t.mission_status || 'Not dispatched'}
+                ${t.queue_position ? `<br><span class="text-muted" style="font-size:0.76rem">#${t.queue_position} in queue</span>` : ''}
+                ${t.error_message ? `<div class="err-cell">⚠️ ${t.error_message}</div>` : ''}
+              </td>
+              <td class="row-actions">
+                ${canRetry ? `<button class="btn btn-outline btn-sm" onclick="retryDispatch(${o.id})">Retry Dispatch</button>` : ''}
+                ${inFlight ? `<button class="btn btn-outline btn-sm" style="color:#dc2626;border-color:#fecaca" onclick="abortOrder(${o.id})">Abort</button>` : ''}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        body.innerHTML = `<tr><td colspan="8" class="empty">Could not load orders — ${e.message}</td></tr>`;
+      }
+    }
+
+    async function loadUsers() {
+      const body = document.getElementById('usersBody');
+      try {
+        const users = await apiFetch('/admin/users');
+        body.innerHTML = users.map(u => `
+          <tr>
+            <td class="mono">#${u.id}</td>
+            <td>${u.first_name} ${u.last_name}</td>
+            <td>${u.email}</td>
+            <td>${u.phone || '—'}</td>
+            <td>${u.is_admin ? '<span class="badge badge-delivered">admin</span>' : '<span class="badge badge-pending">customer</span>'}</td>
+            <td>${new Date(u.created_at).toLocaleDateString()}</td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        body.innerHTML = `<tr><td colspan="6" class="empty">Could not load users — ${e.message}</td></tr>`;
+      }
+    }
+
+    async function overrideStatus(orderId, status) {
+      try {
+        await apiFetch(`/admin/orders/${orderId}/status`, {
+          method: 'PUT',
+          body: JSON.stringify({ status })
+        });
+        await loadOrders();
+      } catch (e) {
+        alert('Could not update status: ' + e.message);
+        await loadOrders();
+      }
+    }
+
+    async function abortOrder(orderId) {
+      if (!confirm('Abort this delivery? The drone will return to base immediately.')) return;
+      try {
+        await apiFetch(`/admin/orders/${orderId}/abort`, { method: 'POST' });
+        await loadOrders();
+      } catch (e) {
+        alert('Could not abort: ' + e.message);
+      }
+    }
+
+    async function retryDispatch(orderId) {
+      try {
+        await apiFetch(`/admin/orders/${orderId}/retry-dispatch`, { method: 'POST' });
+        await loadOrders();
+        await loadFleet();
+      } catch (e) {
+        alert('Retry failed: ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html>

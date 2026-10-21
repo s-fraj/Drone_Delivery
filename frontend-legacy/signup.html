@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up — Drovery</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, var(--navy) 0%, #0a1e45 100%);
+    }
+    .auth-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6rem 1.5rem 3rem;
+    }
+    .auth-box {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 500px;
+      padding: 2.5rem 2.2rem 2rem;
+    }
+    .auth-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--blue);
+      text-align: center;
+      margin-bottom: 0.25rem;
+    }
+    .auth-tagline {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 2rem;
+    }
+    .auth-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+    }
+    .btn-primary { width: 100%; justify-content: center; padding: 0.82rem; font-size: 1rem; }
+    .error-msg {
+      background: #fee2e2; color: #991b1b;
+      padding: 0.7rem 1rem; border-radius: 8px;
+      font-size: 0.88rem; margin-bottom: 1rem; display: none;
+    }
+    .success-msg {
+      background: #d1fae5; color: #065f46;
+      padding: 0.7rem 1rem; border-radius: 8px;
+      font-size: 0.88rem; margin-bottom: 1rem; display: none;
+    }
+    .auth-footer { text-align: center; margin-top: 1.2rem; font-size: 0.88rem; color: var(--muted); }
+    .auth-footer a { color: var(--blue); font-weight: 600; text-decoration: none; }
+    .terms { font-size: 0.78rem; color: var(--muted); text-align: center; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="logo">Drovery</a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about_us.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li id="nav-auth"><a href="login.html" class="nav-cta">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-logo">Drovery</div>
+      <p class="auth-tagline">Join thousands already flying with us</p>
+
+      <h2 class="auth-title">Create your account</h2>
+
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="success-msg" id="successMsg">Account created! Redirecting to login…</div>
+
+      <form id="signupForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="firstName" placeholder="Fraj" required/>
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="lastName" placeholder="Selmi" required/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="email" placeholder="you@example.com" required/>
+        </div>
+        <div class="form-group">
+          <label>Phone (optional)</label>
+          <input type="tel" id="phone" placeholder="+216 XX XXX XXX"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="Min. 8 characters" required minlength="8"/>
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" id="confirm" placeholder="••••••••" required/>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Create Account</button>
+      </form>
+
+      <p class="terms">By signing up you agree to our <a href="#" style="color:var(--blue)">Terms of Service</a></p>
+      <div class="auth-footer">Already have an account? <a href="login.html">Sign in →</a></div>
+    </div>
+  </div>
+
+  <footer class="footer">© 2026 Drovery. All rights reserved.</footer>
+
+  <script src="api.js"></script>
+  <script>
+    if (isLoggedIn()) window.location.href = 'profile.html';
+
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const err = document.getElementById('errorMsg');
+      const ok  = document.getElementById('successMsg');
+      err.style.display = 'none';
+
+      const pass = document.getElementById('password').value;
+      if (pass !== document.getElementById('confirm').value) {
+        err.textContent = 'Passwords do not match.';
+        err.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = 'Creating account…';
+      btn.disabled = true;
+
+      try {
+        await apiFetch('/auth/signup', {
+          method: 'POST',
+          body: JSON.stringify({
+            first_name: document.getElementById('firstName').value,
+            last_name:  document.getElementById('lastName').value,
+            email:      document.getElementById('email').value,
+            phone:      document.getElementById('phone').value || null,
+            password:   pass
+          })
+        });
+        ok.style.display = 'block';
+        setTimeout(() => window.location.href = 'login.html', 1500);
+      } catch (ex) {
+        err.textContent = ex.message;
+        err.style.display = 'block';
+        btn.textContent = 'Create Account';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

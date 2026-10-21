@@ -1,0 +1,46 @@
+.admin-page { padding-top: 66px; }
+.admin-layout {
+  max-width: 1200px; margin: 2.5rem auto; padding: 0 1.5rem 4rem;
+  display: flex; flex-direction: column; gap: 1.5rem;
+  h1 { font-size: 1.6rem; font-weight: 900; letter-spacing: -.02em; }
+  .subtitle { color: var(--muted); margin-top: .2rem; }
+  .section-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .section-hdr h2 { font-size: 1.05rem; font-weight: 800; }
+
+  .fleet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .8rem; }
+  .drone-card { border: 1.5px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center; }
+  .drone-card.idle { border-color: var(--success); background: #f0fdf4; }
+  .drone-card.busy { border-color: var(--warning); background: #fffbeb; }
+  .drone-card.returning_home { border-color: #6366f1; background: #eef2ff; }
+  .drone-card.offline { border-color: #9ca3af; background: #f3f4f6; opacity: .75; }
+  .drone-card .dnum { font-family: 'Space Mono', monospace; font-weight: 800; font-size: 1.1rem; }
+  .drone-card .dstatus { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; margin-top: .3rem; font-weight: 700; }
+  .drone-card.idle .dstatus { color: #15803d; }
+  .drone-card.busy .dstatus { color: #b45309; }
+  .drone-card.returning_home .dstatus { color: #4338ca; }
+  .drone-card.offline .dstatus { color: #6b7280; }
+  .drone-card .dbatt { font-size: .75rem; margin-top: .3rem; color: var(--muted); }
+  .fleet-map { height: 380px; border-radius: 12px; margin-top: 1rem; }
+  .queue-pill { font-size: .82rem; color: var(--muted); margin-top: .6rem; }
+  .service-banner { margin-top: 1rem; padding: .8rem 1rem; border-radius: 10px; font-size: .85rem; font-weight: 600; background: #fef3c7; color: #92400e; }
+  .service-controls { display: flex; gap: .6rem; margin-top: 1rem; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+  th { text-align: left; padding: .6rem .7rem; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1.5px solid var(--border); }
+  td { padding: .7rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  .row-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .err-cell { color: var(--danger); font-size: .78rem; max-width: 220px; }
+  .table-wrap { overflow-x: auto; }
+  .status-select { padding: .4rem .6rem; border-radius: 8px; border: 1.5px solid var(--border); font-size: .8rem; }
+  .sub { font-size: .76rem; }
+
+  .health { font-size: .82rem; color: var(--muted); margin-right: .8rem; }
+  .health-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: .4rem; background: #9ca3af; }
+  .health-dot.up { background: var(--success); }
+  .health-dot.down { background: var(--danger); }
+
+  .audit-entry { padding: .5rem 0; border-bottom: 1px solid #f1f5f9; font-size: .85rem; }
+  .audit-time { font-size: .75rem; }
+}
+.leaflet-container .order-pin { background: none; border: none; font-size: 18px; line-height: 22px; text-align: center; }
